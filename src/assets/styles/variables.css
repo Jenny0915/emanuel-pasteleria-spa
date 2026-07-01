@@ -1,0 +1,80 @@
+﻿:root {
+  /* =========================================
+     COLORES OFICIALES DE MARCA
+  ========================================= */
+
+  --color-brand-blue: #23b5d3;
+  --color-brand-green: #39b54a;
+  --color-brand-yellow: #ffd23f;
+  --color-brand-white: #fffbff;
+
+  /* =========================================
+     JERARQUÍA FUNCIONAL
+  ========================================= */
+
+  /* Principal: botones, enlaces activos y resaltados */
+  --color-primary: #23b5d3;
+  --color-primary-dark: #168da8;
+  --color-primary-light: #e9f8fb;
+
+  /* Secundario: acciones alternativas y estados positivos */
+  --color-secondary: #39b54a;
+  --color-secondary-dark: #278a36;
+  --color-secondary-light: #edf9ef;
+
+  /* Acento: badges, indicadores y detalles visuales */
+  --color-accent: #ffd23f;
+  --color-accent-dark: #d9a900;
+  --color-accent-light: #fff8d8;
+
+  /* =========================================
+     COLORES DE INTERFAZ
+  ========================================= */
+
+  --color-text: #1f2933;
+  --color-text-muted: #667085;
+  --color-background: #fffbff;
+  --color-surface: #ffffff;
+  --color-surface-soft: #f7fbfc;
+  --color-border: #e4e7ec;
+
+  --color-success: #39b54a;
+  --color-error: #b42318;
+  --color-warning: #b77900;
+  --color-info: #23b5d3;
+
+  /* =========================================
+     TIPOGRAFÍA
+  ========================================= */
+
+  --font-logo: "Poiret One", sans-serif;
+  --font-body: "Poppins", sans-serif;
+
+  /* =========================================
+     BORDES Y SOMBRAS
+  ========================================= */
+
+  --radius-sm: 0.5rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 0.25rem 1rem rgba(31, 41, 51, 0.08);
+  --shadow-md: 0 0.75rem 2rem rgba(31, 41, 51, 0.12);
+
+  --shadow-primary:
+    0 0.5rem 1.4rem rgba(35, 181, 211, 0.24);
+
+  --shadow-secondary:
+    0 0.5rem 1.4rem rgba(57, 181, 74, 0.22);
+
+  /* =========================================
+     LAYOUT Y TRANSICIONES
+  ========================================= */
+
+  --header-height: 88px;
+  --container-max-width: 1200px;
+
+  --transition-fast: 180ms ease;
+  --transition-normal: 280ms ease;
+}
