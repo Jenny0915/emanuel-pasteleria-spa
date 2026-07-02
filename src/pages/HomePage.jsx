@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import './HomePage.css';
@@ -26,7 +26,8 @@ const heroSlides = [
     alt: 'Pastel personalizado para una celebración especial',
     category: 'Personalizable',
     name: 'Celebración especial',
-    description: 'Diseñado para convertir cada momento en un recuerdo.',
+    description:
+      'Diseñado para convertir cada momento en un recuerdo.',
   },
 ];
 
@@ -35,7 +36,7 @@ const benefits = [
     id: 1,
     title: 'Ingredientes de calidad',
     description:
-      'Seleccionamos ingredientes naturales y de origen responsable.',
+      'Seleccionamos ingredientes naturales y de origen responsable para cuidar cada preparación.',
     icon: '🌿',
     color: 'green',
   },
@@ -43,7 +44,7 @@ const benefits = [
     id: 2,
     title: 'Recetas saludables',
     description:
-      'Opciones bajas en azúcar y adaptadas a tus necesidades.',
+      'Creamos opciones bajas en azúcar y adaptadas a diferentes necesidades alimentarias.',
     icon: '🛡️',
     color: 'blue',
   },
@@ -51,7 +52,7 @@ const benefits = [
     id: 3,
     title: 'Pedido guiado',
     description:
-      'Te acompañamos paso a paso para crear tu pastel ideal.',
+      'Te acompañamos paso a paso para configurar un pastel realmente pensado para ti.',
     icon: '🧁',
     color: 'yellow',
   },
@@ -59,23 +60,38 @@ const benefits = [
     id: 4,
     title: 'Entrega cuidada',
     description:
-      'Seguimiento claro desde la configuración hasta la entrega.',
+      'Realizamos seguimiento desde la configuración del pedido hasta el momento de la entrega.',
     icon: '📦',
     color: 'blue',
   },
 ];
 
+const initialQuickOrder = {
+  restriction: '',
+  size: '',
+  sugarLevel: '',
+};
+
+const fieldMessages = {
+  restriction:
+    'Selecciona una restricción o preferencia alimentaria.',
+  size: 'Selecciona el número aproximado de porciones.',
+  sugarLevel: 'Selecciona el nivel de azúcar que prefieres.',
+};
+
 function HomePage() {
   const navigate = useNavigate();
 
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isCarouselPaused, setIsCarouselPaused] = useState(false);
+  const [isCarouselPaused, setIsCarouselPaused] =
+    useState(false);
 
-  const [quickOrder, setQuickOrder] = useState({
-    restriction: '',
-    size: '',
-    sugarLevel: '',
-  });
+  const [quickOrder, setQuickOrder] =
+    useState(initialQuickOrder);
+
+  const [touchedFields, setTouchedFields] = useState({});
+  const [submitAttempted, setSubmitAttempted] =
+    useState(false);
 
   useEffect(() => {
     if (isCarouselPaused) {
@@ -92,6 +108,32 @@ function HomePage() {
 
     return () => window.clearInterval(intervalId);
   }, [isCarouselPaused]);
+
+  const formErrors = useMemo(() => {
+    const errors = {};
+
+    Object.entries(quickOrder).forEach(
+      ([fieldName, fieldValue]) => {
+        if (!fieldValue) {
+          errors[fieldName] = fieldMessages[fieldName];
+        }
+      },
+    );
+
+    return errors;
+  }, [quickOrder]);
+
+  const completedFields =
+    Object.values(quickOrder).filter(Boolean).length;
+
+  const completionPercentage = Math.round(
+    (completedFields /
+      Object.keys(initialQuickOrder).length) *
+      100,
+  );
+
+  const hasFormErrors =
+    Object.keys(formErrors).length > 0;
 
   const showPreviousSlide = () => {
     setCurrentSlide((previousSlide) =>
@@ -116,16 +158,53 @@ function HomePage() {
       ...previousOrder,
       [name]: value,
     }));
+
+    setTouchedFields((previousFields) => ({
+      ...previousFields,
+      [name]: true,
+    }));
   };
+
+  const handleQuickOrderBlur = (event) => {
+    const { name } = event.target;
+
+    setTouchedFields((previousFields) => ({
+      ...previousFields,
+      [name]: true,
+    }));
+  };
+
+  const shouldShowFieldError = (fieldName) =>
+    Boolean(
+      formErrors[fieldName] &&
+        (touchedFields[fieldName] || submitAttempted),
+    );
 
   const handleQuickOrderSubmit = (event) => {
     event.preventDefault();
+    setSubmitAttempted(true);
 
-    /*
-     * Más adelante estos datos se conectarán con OrderContext
-     * para abrir el configurador con la selección precargada.
-     */
-    navigate('/pedido/configurar');
+    if (hasFormErrors) {
+      const firstInvalidField =
+        Object.keys(formErrors)[0];
+
+      window.requestAnimationFrame(() => {
+        document
+          .querySelector(
+            `[name="${firstInvalidField}"]`,
+          )
+          ?.focus();
+      });
+
+      return;
+    }
+
+    navigate('/pedido/configurar', {
+      state: {
+        quickOrder,
+        source: 'home-quick-order',
+      },
+    });
   };
 
   const activeSlide = heroSlides[currentSlide];
@@ -161,10 +240,10 @@ function HomePage() {
             </h1>
 
             <p className="home-hero__description">
-              Configura tu pedido de forma clara y sencilla según tus
-              preferencias y restricciones alimentarias. Elige entre
-              opciones sin lactosa, sin gluten, sin azúcar o endulzadas
-              con stevia.
+              Configura tu pedido de forma clara y sencilla
+              según tus preferencias y restricciones
+              alimentarias. Elige entre opciones sin lactosa,
+              sin gluten, sin azúcar o endulzadas con stevia.
             </p>
 
             <div
@@ -231,8 +310,12 @@ function HomePage() {
             className="home-carousel"
             aria-label="Pasteles destacados"
             aria-roledescription="carrusel"
-            onMouseEnter={() => setIsCarouselPaused(true)}
-            onMouseLeave={() => setIsCarouselPaused(false)}
+            onMouseEnter={() =>
+              setIsCarouselPaused(true)
+            }
+            onMouseLeave={() =>
+              setIsCarouselPaused(false)
+            }
             onFocus={() => setIsCarouselPaused(true)}
             onBlur={() => setIsCarouselPaused(false)}
           >
@@ -265,7 +348,11 @@ function HomePage() {
                   <img
                     className="home-carousel__image"
                     src={slide.image}
-                    alt={index === currentSlide ? slide.alt : ''}
+                    alt={
+                      index === currentSlide
+                        ? slide.alt
+                        : ''
+                    }
                   />
                 </div>
               ))}
@@ -290,13 +377,19 @@ function HomePage() {
 
               <div className="home-carousel__counter">
                 <span>
-                  {String(currentSlide + 1).padStart(2, '0')}
+                  {String(currentSlide + 1).padStart(
+                    2,
+                    '0',
+                  )}
                 </span>
 
                 <span aria-hidden="true">/</span>
 
                 <span>
-                  {String(heroSlides.length).padStart(2, '0')}
+                  {String(heroSlides.length).padStart(
+                    2,
+                    '0',
+                  )}
                 </span>
               </div>
             </div>
@@ -328,10 +421,14 @@ function HomePage() {
                         : ''
                     }`}
                     type="button"
-                    onClick={() => setCurrentSlide(index)}
+                    onClick={() =>
+                      setCurrentSlide(index)
+                    }
                     aria-label={`Mostrar ${slide.name}`}
                     aria-current={
-                      index === currentSlide ? 'true' : undefined
+                      index === currentSlide
+                        ? 'true'
+                        : undefined
                     }
                   />
                 ))}
@@ -349,149 +446,402 @@ function HomePage() {
           <form
             className="quick-order"
             onSubmit={handleQuickOrderSubmit}
+            noValidate
           >
-            <div className="quick-order__intro">
-              <div
-                className="quick-order__icon"
-                aria-hidden="true"
-              >
-                🧁
+            <div
+              className="quick-order__brand-line"
+              aria-hidden="true"
+            >
+              <span />
+              <span />
+              <span />
+            </div>
+
+            <div className="quick-order__header">
+              <div className="quick-order__intro">
+                <div
+                  className="quick-order__icon"
+                  aria-hidden="true"
+                >
+                  🧁
+                </div>
+
+                <div>
+                  <span className="quick-order__eyebrow">
+                    Empieza aquí
+                  </span>
+
+                  <h2 id="quick-order-title">
+                    Configura las bases de tu pastel
+                  </h2>
+
+                  <p>
+                    Elige estas tres preferencias iniciales.
+                    Podrás completar y modificar los demás
+                    detalles en el configurador.
+                  </p>
+                </div>
               </div>
 
-              <div>
-                <span className="quick-order__eyebrow">
-                  Empieza aquí
-                </span>
+              <div
+                className="quick-order__progress"
+                aria-label={`${completionPercentage}% del formulario inicial completado`}
+              >
+                <div className="quick-order__progress-copy">
+                  <span>Configuración inicial</span>
 
-                <h2 id="quick-order-title">
-                  Configura las bases de tu pastel
-                </h2>
+                  <strong>
+                    {completedFields} de 3
+                  </strong>
+                </div>
+
+                <div
+                  className="quick-order__progress-track"
+                  aria-hidden="true"
+                >
+                  <span
+                    style={{
+                      width: `${completionPercentage}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="quick-order__body">
+              <div className="quick-order__fields">
+                <div
+                  className={`quick-order__field ${
+                    quickOrder.restriction
+                      ? 'quick-order__field--completed'
+                      : ''
+                  } ${
+                    shouldShowFieldError(
+                      'restriction',
+                    )
+                      ? 'quick-order__field--invalid'
+                      : ''
+                  }`}
+                >
+                  <div className="quick-order__field-heading">
+                    <span className="quick-order__field-number">
+                      01
+                    </span>
+
+                    <div>
+                      <label htmlFor="quickRestriction">
+                        Restricción principal
+                      </label>
+
+                      <span className="quick-order__field-help">
+                        Cuéntanos qué debemos tener en
+                        cuenta.
+                      </span>
+                    </div>
+
+                    {quickOrder.restriction && (
+                      <span
+                        className="quick-order__field-check"
+                        aria-label="Campo completado"
+                      >
+                        ✓
+                      </span>
+                    )}
+                  </div>
+
+                  <select
+                    id="quickRestriction"
+                    name="restriction"
+                    value={quickOrder.restriction}
+                    onChange={handleQuickOrderChange}
+                    onBlur={handleQuickOrderBlur}
+                    aria-invalid={
+                      shouldShowFieldError(
+                        'restriction',
+                      )
+                        ? 'true'
+                        : 'false'
+                    }
+                    aria-describedby={
+                      shouldShowFieldError(
+                        'restriction',
+                      )
+                        ? 'quickRestrictionError'
+                        : undefined
+                    }
+                  >
+                    <option value="">
+                      Selecciona una opción
+                    </option>
+
+                    <option value="lactose-free">
+                      Sin lactosa
+                    </option>
+
+                    <option value="gluten-free">
+                      Sin gluten
+                    </option>
+
+                    <option value="sugar-free">
+                      Sin azúcar
+                    </option>
+
+                    <option value="stevia">
+                      Con stevia
+                    </option>
+                  </select>
+
+                  {shouldShowFieldError(
+                    'restriction',
+                  ) && (
+                    <p
+                      className="quick-order__field-error"
+                      id="quickRestrictionError"
+                    >
+                      {formErrors.restriction}
+                    </p>
+                  )}
+                </div>
+
+                <div
+                  className={`quick-order__field ${
+                    quickOrder.size
+                      ? 'quick-order__field--completed'
+                      : ''
+                  } ${
+                    shouldShowFieldError('size')
+                      ? 'quick-order__field--invalid'
+                      : ''
+                  }`}
+                >
+                  <div className="quick-order__field-heading">
+                    <span className="quick-order__field-number">
+                      02
+                    </span>
+
+                    <div>
+                      <label htmlFor="quickSize">
+                        Tamaño
+                      </label>
+
+                      <span className="quick-order__field-help">
+                        Indica para cuántas personas lo
+                        necesitas.
+                      </span>
+                    </div>
+
+                    {quickOrder.size && (
+                      <span
+                        className="quick-order__field-check"
+                        aria-label="Campo completado"
+                      >
+                        ✓
+                      </span>
+                    )}
+                  </div>
+
+                  <select
+                    id="quickSize"
+                    name="size"
+                    value={quickOrder.size}
+                    onChange={handleQuickOrderChange}
+                    onBlur={handleQuickOrderBlur}
+                    aria-invalid={
+                      shouldShowFieldError('size')
+                        ? 'true'
+                        : 'false'
+                    }
+                    aria-describedby={
+                      shouldShowFieldError('size')
+                        ? 'quickSizeError'
+                        : undefined
+                    }
+                  >
+                    <option value="">
+                      Selecciona porciones
+                    </option>
+
+                    <option value="8">
+                      8 porciones
+                    </option>
+
+                    <option value="12">
+                      12 porciones
+                    </option>
+
+                    <option value="20">
+                      20 porciones
+                    </option>
+
+                    <option value="30">
+                      30 porciones
+                    </option>
+                  </select>
+
+                  {shouldShowFieldError('size') && (
+                    <p
+                      className="quick-order__field-error"
+                      id="quickSizeError"
+                    >
+                      {formErrors.size}
+                    </p>
+                  )}
+                </div>
+
+                <div
+                  className={`quick-order__field ${
+                    quickOrder.sugarLevel
+                      ? 'quick-order__field--completed'
+                      : ''
+                  } ${
+                    shouldShowFieldError(
+                      'sugarLevel',
+                    )
+                      ? 'quick-order__field--invalid'
+                      : ''
+                  }`}
+                >
+                  <div className="quick-order__field-heading">
+                    <span className="quick-order__field-number">
+                      03
+                    </span>
+
+                    <div>
+                      <label htmlFor="quickSugarLevel">
+                        Nivel de azúcar
+                      </label>
+
+                      <span className="quick-order__field-help">
+                        Elige la alternativa que prefieras.
+                      </span>
+                    </div>
+
+                    {quickOrder.sugarLevel && (
+                      <span
+                        className="quick-order__field-check"
+                        aria-label="Campo completado"
+                      >
+                        ✓
+                      </span>
+                    )}
+                  </div>
+
+                  <select
+                    id="quickSugarLevel"
+                    name="sugarLevel"
+                    value={quickOrder.sugarLevel}
+                    onChange={handleQuickOrderChange}
+                    onBlur={handleQuickOrderBlur}
+                    aria-invalid={
+                      shouldShowFieldError(
+                        'sugarLevel',
+                      )
+                        ? 'true'
+                        : 'false'
+                    }
+                    aria-describedby={
+                      shouldShowFieldError(
+                        'sugarLevel',
+                      )
+                        ? 'quickSugarLevelError'
+                        : undefined
+                    }
+                  >
+                    <option value="">
+                      Selecciona una opción
+                    </option>
+
+                    <option value="low-sugar">
+                      Bajo en azúcar
+                    </option>
+
+                    <option value="sugar-free">
+                      Sin azúcar
+                    </option>
+
+                    <option value="stevia">
+                      Endulzado con stevia
+                    </option>
+                  </select>
+
+                  {shouldShowFieldError(
+                    'sugarLevel',
+                  ) && (
+                    <p
+                      className="quick-order__field-error"
+                      id="quickSugarLevelError"
+                    >
+                      {formErrors.sugarLevel}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="quick-order__action">
+                <div className="quick-order__price">
+                  <span>Pedido desde</span>
+
+                  <strong>$26.000</strong>
+
+                  <small>
+                    El valor final dependerá de tu
+                    configuración.
+                  </small>
+                </div>
+
+                <button
+                  className="quick-order__button"
+                  type="submit"
+                >
+                  Continuar pedido
+                  <span aria-hidden="true">→</span>
+                </button>
+
+                <span className="quick-order__security">
+                  Tus elecciones podrán modificarse
+                  después.
+                </span>
+              </div>
+            </div>
+
+            {submitAttempted && hasFormErrors && (
+              <div
+                className="quick-order__form-message"
+                role="alert"
+              >
+                <span aria-hidden="true">!</span>
 
                 <p>
-                  Selecciona tus preferencias iniciales y continúa con
-                  el pedido guiado.
+                  Completa las tres selecciones para
+                  continuar con tu pedido.
                 </p>
               </div>
-            </div>
-
-            <div className="quick-order__fields">
-              <div className="quick-order__field">
-                <label htmlFor="quickRestriction">
-                  Restricción
-                </label>
-
-                <select
-                  id="quickRestriction"
-                  name="restriction"
-                  value={quickOrder.restriction}
-                  onChange={handleQuickOrderChange}
-                >
-                  <option value="">
-                    Selecciona una opción
-                  </option>
-
-                  <option value="lactose-free">
-                    Sin lactosa
-                  </option>
-
-                  <option value="gluten-free">
-                    Sin gluten
-                  </option>
-
-                  <option value="sugar-free">
-                    Sin azúcar
-                  </option>
-
-                  <option value="stevia">
-                    Con stevia
-                  </option>
-                </select>
-              </div>
-
-              <div className="quick-order__field">
-                <label htmlFor="quickSize">
-                  Tamaño
-                </label>
-
-                <select
-                  id="quickSize"
-                  name="size"
-                  value={quickOrder.size}
-                  onChange={handleQuickOrderChange}
-                >
-                  <option value="">
-                    Selecciona porciones
-                  </option>
-
-                  <option value="8">
-                    8 porciones
-                  </option>
-
-                  <option value="12">
-                    12 porciones
-                  </option>
-
-                  <option value="20">
-                    20 porciones
-                  </option>
-
-                  <option value="30">
-                    30 porciones
-                  </option>
-                </select>
-              </div>
-
-              <div className="quick-order__field">
-                <label htmlFor="quickSugarLevel">
-                  Nivel de azúcar
-                </label>
-
-                <select
-                  id="quickSugarLevel"
-                  name="sugarLevel"
-                  value={quickOrder.sugarLevel}
-                  onChange={handleQuickOrderChange}
-                >
-                  <option value="">
-                    Selecciona una opción
-                  </option>
-
-                  <option value="low-sugar">
-                    Bajo en azúcar
-                  </option>
-
-                  <option value="sugar-free">
-                    Sin azúcar
-                  </option>
-
-                  <option value="stevia">
-                    Endulzado con stevia
-                  </option>
-                </select>
-              </div>
-            </div>
-
-            <div className="quick-order__action">
-              <span>Pedido desde</span>
-              <strong>$26.000</strong>
-
-              <button
-                className="quick-order__button"
-                type="submit"
-              >
-                Continuar
-                <span aria-hidden="true">→</span>
-              </button>
-            </div>
+            )}
           </form>
         </div>
       </section>
 
       <section
         className="home-benefits"
-        aria-label="Beneficios de Emanuel Pastelería"
+        aria-labelledby="home-benefits-title"
       >
         <div className="container">
+          <div className="home-benefits__heading">
+            <span className="home-section-eyebrow">
+              Nuestra forma de trabajar
+            </span>
+
+            <h2 id="home-benefits-title">
+              Pensamos en cada detalle de tu pedido
+            </h2>
+
+            <p>
+              Combinamos ingredientes seleccionados,
+              personalización y acompañamiento para crear
+              una experiencia clara desde el primer paso.
+            </p>
+          </div>
+
           <div className="home-benefits__grid">
             {benefits.map((benefit) => (
               <article
@@ -505,12 +855,91 @@ function HomePage() {
                   {benefit.icon}
                 </span>
 
-                <div>
-                  <h2>{benefit.title}</h2>
-                  <p>{benefit.description}</p>
-                </div>
+                <h3>{benefit.title}</h3>
+
+                <p>{benefit.description}</p>
+
+                <span
+                  className="benefit-card__line"
+                  aria-hidden="true"
+                />
               </article>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section
+        className="healthy-cravings"
+        aria-labelledby="healthy-cravings-title"
+      >
+        <div className="container">
+          <div className="healthy-cravings__panel">
+            <div className="healthy-cravings__visual">
+              <div
+                className="healthy-cravings__decoration healthy-cravings__decoration--top"
+                aria-hidden="true"
+              />
+
+              <div
+                className="healthy-cravings__decoration healthy-cravings__decoration--bottom"
+                aria-hidden="true"
+              />
+
+              <img
+                className="healthy-cravings__image"
+                src="/images/home/cake-hero-1.png"
+                alt="Pastel saludable personalizado de Emanuel Pastelería"
+              />
+
+              <div className="healthy-cravings__image-label">
+                <span aria-hidden="true">♡</span>
+
+                <div>
+                  <strong>Hecho para ti</strong>
+                  <small>
+                    Personalizado según tus preferencias
+                  </small>
+                </div>
+              </div>
+            </div>
+
+            <div className="healthy-cravings__content">
+              <span className="home-section-eyebrow">
+                Antojos saludables
+              </span>
+
+              <h2 id="healthy-cravings-title">
+                Disfruta lo dulce
+                <span> sin dejar de cuidarte</span>
+              </h2>
+
+              <p className="healthy-cravings__lead">
+                En Emanuel Pastelería creemos que celebrar
+                y cuidarte pueden ir de la mano. Por eso
+                creamos pasteles personalizados que se
+                adaptan a tus gustos, preferencias y
+                necesidades alimentarias.
+              </p>
+
+              <div className="healthy-cravings__actions">
+                <Link
+                  className="home-button home-button--primary"
+                  to="/pedido/configurar"
+                >
+                  Crear mi pastel
+                  <span aria-hidden="true">→</span>
+                </Link>
+
+                <Link
+                  className="healthy-cravings__link"
+                  to="/catalogo"
+                >
+                  Ver catálogo
+                  <span aria-hidden="true">↗</span>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>

@@ -15,29 +15,35 @@ function AppRouter() {
       <Route element={<AppLayout />}>
         <Route index element={<HomePage />} />
 
-        <Route path="catalogo" element={<CatalogPage />} />
+        <Route
+          path="/catalogo"
+          element={<CatalogPage />}
+        />
 
         <Route
-          path="producto/:id"
+          path="/catalogo/:id"
           element={<ProductDetailPage />}
         />
 
         <Route
-          path="pedido/configurar"
+          path="/pedido/configurar"
           element={<OrderWizardPage />}
         />
 
         <Route
-          path="pedido/resumen"
+          path="/pedido/resumen"
           element={<OrderSummaryPage />}
         />
 
         <Route
-          path="pedido/confirmacion"
+          path="/pedido/confirmacion"
           element={<OrderConfirmationPage />}
         />
 
-        <Route path="*" element={<NotFoundPage />} />
+        <Route
+          path="*"
+          element={<NotFoundPage />}
+        />
       </Route>
     </Routes>
   );

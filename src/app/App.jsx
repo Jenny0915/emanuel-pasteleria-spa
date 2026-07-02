@@ -1,7 +1,13 @@
+import { OrderProvider } from '../context/OrderContext';
+
 import AppRouter from './AppRouter';
 
 function App() {
-  return <AppRouter />;
+  return (
+    <OrderProvider>
+      <AppRouter />
+    </OrderProvider>
+  );
 }
 
 export default App;
