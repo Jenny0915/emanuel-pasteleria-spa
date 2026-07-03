@@ -62,14 +62,30 @@
   background-color: var(--color-accent);
 }
 
+/* Etiqueta de estado: ahora se visualiza como una píldora suave */
 .order-confirmation__eyebrow {
-  display: inline-block;
-  margin-bottom: 0.5rem;
-  color: var(--color-primary-dark);
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: 0.48rem 0.9rem;
+  margin: 0 0 1rem;
+  color: var(--color-secondary-dark);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  line-height: 1;
   text-transform: uppercase;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(57, 181, 74, 0.13),
+      rgba(57, 181, 74, 0.06)
+    );
+  border: 1px solid rgba(57, 181, 74, 0.28);
+  border-radius: 999px;
+  box-shadow:
+    0 0.35rem 0.9rem rgba(57, 181, 74, 0.08);
 }
 
 .order-confirmation h1 {
@@ -159,15 +175,25 @@
   border-radius: 0.75rem;
 }
 
+.order-confirmation__error strong,
+.order-confirmation__error p,
+.order-confirmation__error small {
+  display: block;
+}
+
+.order-confirmation__error p {
+  margin: 0.35rem 0;
+}
+
 .order-confirmation__success-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 4.5rem;
-  height: 4.5rem;
+  width: 3.65rem;
+  height: 3.65rem;
   margin-bottom: 1rem;
   color: #ffffff;
-  font-size: 1.8rem;
+  font-size: 1.45rem;
   font-weight: 700;
   background:
     linear-gradient(
@@ -177,7 +203,7 @@
     );
   border-radius: 50%;
   box-shadow:
-    0 0.9rem 2rem rgba(57, 181, 74, 0.2);
+    0 0.75rem 1.7rem rgba(57, 181, 74, 0.18);
 }
 
 .order-confirmation__order-id {
@@ -193,6 +219,11 @@
 .order-confirmation__order-id strong {
   color: var(--color-primary-dark);
   font-size: 1.15rem;
+}
+
+.order-confirmation__order-id small {
+  color: var(--color-text-muted);
+  font-size: 0.58rem;
 }
 
 .order-confirmation__next-steps {
@@ -214,5 +245,18 @@
 
   .order-confirmation__summary {
     grid-template-columns: 1fr;
+  }
+
+  .order-confirmation__success-icon {
+    width: 3.35rem;
+    height: 3.35rem;
+    font-size: 1.3rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .order-confirmation__eyebrow {
+    min-height: 1.85rem;
+    padding: 0.42rem 0.8rem;
+    font-size: 0.66rem;
   }
 }
